@@ -1,0 +1,123 @@
+import random
+import math
+import turtle as t
+
+
+
+def closest_distance_to_line(m,b,x,y):
+    """
+    Returns closest distance between point (x,y) and line y=mx+b
+    """
+    linex = (-b + y + x/m)/(m + 1/m)
+    liney = m * linex + b
+    distance = math.sqrt((x - linex)**2 + (y - liney)**2)
+    return distance
+
+def plot_points(points,r,c):
+    for p in points:
+        makecircle(p[0],p[1],r,c)
+        
+        
+     
+    
+        
+    
+def self_intersect(points, radius):
+    """
+    Checks whether circles intersect eachother
+    """
+    num_points = len(points)
+    for i in range(num_points):
+        for j in range(i + 1, num_points):
+            p1 = points[i]
+            p2 = points[j]
+            if (p1[0]-p2[0])**2 + (p1[1]-p2[1])**2 < 4*radius**2:
+                return True
+    return False
+
+def makecircle(x,y,r,c):
+    t.speed("fastest")
+    t.up() 
+    t.fillcolor(c)
+    t.goto((x,y-r))
+    t.down()
+    t.begin_fill()
+    t.circle(r)
+    t.end_fill()
+    t.up()
+    t.goto((x,y))       
+    t.down()
+    t.goto((0,0))
+    t.hideturtle()
+    
+    
+    
+def self_block(points, radius):
+    """
+    Checks whether any of the points' lines to origin come within another point's radius
+    """
+    
+    for p1 in points:
+        m = (p1[1] + 0.01)/(p1[0] + 0.01)
+        b = 0
+        for p2 in points:
+            if p2 == p1:
+                continue
+            if closest_distance_to_line(m,b,p2[0],p2[1]) < radius:
+                return True
+    return False
+
+def intersect_origin(points, radius):
+    """
+    Checks whether any points come within radius of origin
+    """
+    for p in points:
+        if p[0]**2 + p[1]**2 < radius**2:
+            return True
+    return False
+
+def find_best():
+    num_points = 20  # later make this arg
+    radius = 50
+    color = "blue"
+    arena_size = 400
+    num_trials = 1000000
+    best_power = 0
+    best_points = []
+    for i in range(num_trials):
+        points = []
+        for j in range(num_points):
+            points.append((random.randint(-arena_size,arena_size), random.randint(-arena_size,arena_size)))
+
+        degenerate = False
+        for i in range(num_points):
+            for j in range(i + 1, num_points):
+                p1 = points[i]
+                p2 = points[j]
+                if p1[0] == p2[0] and p1[1] == p2[1]:
+                    degenerate = True
+
+        if degenerate:
+            continue
+
+        if self_intersect(points, radius):
+            continue
+        
+        if intersect_origin(points, radius):
+            continue
+            
+        if self_block(points, radius):
+            continue
+
+        power = sum([(x[0]**2  + x[1]**2)**(-1) for x in points])
+        if power > best_power:
+            t.clear()
+            plot_points(best_points,radius,color)
+            best_power = power
+            best_points = points
+            
+
+            
+     
+    print(best_power, best_points)
+
